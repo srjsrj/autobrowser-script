@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker')
@@ -9,12 +11,9 @@ puppeteer.use(StealthPlugin())
 
 const { installMouseHelper } = require('./mousehelper')
 
-const TIMEOUT_BETWEEN_ACTIONS = 500
-const ACTIONS_COUNTER = 20
-
 const puppeteerOptions = {
   headless: false,
-  ignoreDefaultArgs: ['--mute-audio'],
+  ignoreDefaultArgs: ['--mute-audio', '--start-maximized'],
   args: ['--autoplay-policy=no-user-gesture-required'],
 }
 
@@ -24,6 +23,9 @@ const sounds = {
   click: 'click.mp3',
   wait: 'wait.mp3',
 };
+
+const sites = fs.readFileSync('sites.txt').toString().split("\n");
+
 
 const pageActions = {
   move: ({ page, viewport, timeout }) => {
@@ -36,13 +38,13 @@ const pageActions = {
     SoundPlay.play(sounds.move)
     page.waitForTimeout(timeout)
   },
-  scroll: ({ page, viewport, timeout }) => {
+  scroll: ({ page, timeout }) => {
     console.info('% calling scroll')
     page.evaluate(async () => {
       const direction = Math.random() < 0.5 ? -1 : 1;
 
       window.scrollBy({
-        top: direction * Math.floor((Math.random() * window.innerHeight) / 2) + 1,
+        top: direction * Math.floor((Math.random() * window.innerHeight) / 2) + 50,
         left: 0,
         behavior: 'smooth',
       })
@@ -50,14 +52,14 @@ const pageActions = {
     SoundPlay.play(sounds.scroll)
     page.waitForTimeout(timeout)
   },
-  click: ({ page, viewport, timeout }) => {
+  click: ({ page, timeout }) => {
     console.info('% calling click')
     page.mouse.down()
     page.waitForTimeout(timeout)
     page.mouse.up()
     SoundPlay.play(sounds.click)
   },
-  wait: ({ page, viewport, timeout }) => {
+  wait: ({ page, timeout }) => {
     console.info('% calling wait')
     page.waitForTimeout(timeout * 5)
     SoundPlay.play(sounds.wait)
@@ -67,7 +69,7 @@ const pageActions = {
 function populateSequence({ page, viewport, timeout, numberOfActions }) {
   const seq = [] // Store actions;
   const randomActions = Array.from(
-    { length: ACTIONS_COUNTER },
+    { length: numberOfActions },
     () => Math.floor(Math.random() * Object.keys(pageActions).length) + 1,
   )
 
@@ -81,7 +83,7 @@ function populateSequence({ page, viewport, timeout, numberOfActions }) {
   return seq
 }
 
-const sitePool = ['https://en.wikipedia.org/wiki/Crematorium', 'https://en.wikipedia.org/wiki/America'];
+const sitePool = sites;
 
 async function visitUrl({ url, timeout, numberOfActions }) {
   const viewport = { width: 1000, height: 800 }
@@ -114,12 +116,18 @@ async function visitUrl({ url, timeout, numberOfActions }) {
   });
 }
 
+const actionNumbers = [3, 10, 20, 25, 8, 25, 13, 25, 2, 9, 40];
+const timeoutNumbers = [500, 700, 600, 550, 1000, 1500, 300, 590];
+
 function run() {
   const url = sitePool[Math.floor(Math.random() * sitePool.length)];
-  console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
   console.log('% url selected', url);
-  const numberOfActions = 10;
-  visitUrl({ url, timeout: TIMEOUT_BETWEEN_ACTIONS, numberOfActions }).then(() => { run() });
+  const numberOfActions = actionNumbers[Math.floor(Math.random() * actionNumbers.length)];
+  const timeout = timeoutNumbers[Math.floor(Math.random() * timeoutNumbers.length)];
+  visitUrl({ url, timeout, numberOfActions }).then(() => { run() });
 }
+
+console.log(`%%%%${sitePool.length} sites are loaded. Warming up...`)
 
 run();
