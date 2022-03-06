@@ -6,10 +6,13 @@ const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker')
 
 const SoundPlay = require('sound-play');
 
+const useBrowserSound = true;
+
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }))
 puppeteer.use(StealthPlugin())
 
 const { installMouseHelper } = require('./mousehelper')
+const { installSoundHelper } = require('./soundhelper')
 
 const puppeteerOptions = {
   headless: false,
@@ -35,7 +38,11 @@ const pageActions = {
     const x = getRandom(viewport.width / 2)
     const y = getRandom(viewport.height / 2)
     page.mouse.move(x, y)
-    SoundPlay.play(sounds.move)
+    if (useBrowserSound) {
+      page.evaluate(() => { window.__playSound__('move') });
+    } else {
+      SoundPlay.play(sounds.move)
+    }
     page.waitForTimeout(timeout)
   },
   scroll: ({ page, timeout }) => {
@@ -44,12 +51,16 @@ const pageActions = {
       const direction = Math.random() < 0.5 ? -1 : 1;
 
       window.scrollBy({
-        top: direction * Math.floor((Math.random() * window.innerHeight) / 2) + 50,
+        top: direction * (Math.floor((Math.random() * window.innerHeight) / 2) + 50),
         left: 0,
         behavior: 'smooth',
       })
     })
-    SoundPlay.play(sounds.scroll)
+    if (useBrowserSound) {
+      page.evaluate(() => { window.__playSound__('scroll') });
+    } else {
+      SoundPlay.play(sounds.scroll)
+    }
     page.waitForTimeout(timeout)
   },
   click: ({ page, timeout }) => {
@@ -57,12 +68,20 @@ const pageActions = {
     page.mouse.down()
     page.waitForTimeout(timeout)
     page.mouse.up()
-    SoundPlay.play(sounds.click)
+    if (useBrowserSound) {
+      page.evaluate(() => { window.__playSound__('click') });
+    } else {
+      SoundPlay.play(sounds.click)
+    }
   },
   wait: ({ page, timeout }) => {
     console.info('% calling wait')
     page.waitForTimeout(timeout * 5)
-    SoundPlay.play(sounds.wait)
+    if (useBrowserSound) {
+      page.evaluate(() => { window.__playSound__('wait') });
+    } else {
+      SoundPlay.play(sounds.wait)
+    }
   },
 }
 
@@ -92,6 +111,7 @@ async function visitUrl({ url, timeout, numberOfActions }) {
 
   await page.setViewport(viewport)
   await installMouseHelper(page)
+  await installSoundHelper(page)
 
   await page.goto(url, { waitUntil: 'networkidle2' })
 
@@ -122,12 +142,14 @@ const timeoutNumbers = [500, 700, 600, 550, 1000, 1500, 300, 590];
 function run() {
   const url = sitePool[Math.floor(Math.random() * sitePool.length)];
   console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  console.log('%        contact with a struggling device      %')
+  console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
   console.log('% url selected', url);
   const numberOfActions = actionNumbers[Math.floor(Math.random() * actionNumbers.length)];
   const timeout = timeoutNumbers[Math.floor(Math.random() * timeoutNumbers.length)];
   visitUrl({ url, timeout, numberOfActions }).then(() => { run() });
 }
 
-console.log(`%%%%${sitePool.length} sites are loaded. Warming up...`)
+console.log(`%%%% ${sitePool.length} sites are loaded. Warming up...`)
 
 run();

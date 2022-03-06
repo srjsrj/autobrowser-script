@@ -15,21 +15,22 @@ async function installMouseHelper(page) {
           top: 0;
           z-index: 100000;
           left: 0;
-          width: 20px;
-          height: 20px;
-          background: green;
-          border-radius: 10px;
-          margin: -10px 0 0 -10px;
+          width: 40px;
+          height: 40px;
+          background: rgb(211,0,10);
+          border-radius: 20px;
+          margin: -20px 0 0 -20px;
           padding: 0;
           transition: background .2s, border-radius .2s, border-color .2s, left 1s ease-in-out, top 1s ease-in-out;
+          box-shadow: 0 0 5px 0 rgb(211,0,10,.2);
         }
         puppeteer-mouse-pointer.button-1 {
           transition: none;
-          background: rgba(0,0,0,0.9);
+          background: rgba(211,0,10,.7);
         }
         puppeteer-mouse-pointer.button-2 {
           transition: none;
-          border-color: rgba(0,0,255,0.9);
+          border-color: rgba(211,0,10,0.9);
         }
         puppeteer-mouse-pointer.button-3 {
           transition: none;
@@ -37,7 +38,7 @@ async function installMouseHelper(page) {
         }
         puppeteer-mouse-pointer.button-4 {
           transition: none;
-          border-color: rgba(255,0,0,0.9);
+          border-color: rgba(211,0,10,0.9);
         }
         puppeteer-mouse-pointer.button-5 {
           transition: none;
