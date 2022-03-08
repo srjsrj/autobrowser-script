@@ -6,7 +6,9 @@ const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker')
 
 const SoundPlay = require('sound-play');
 
-const useBrowserSound = true;
+const processArgs = process.argv.slice(2);
+const useBrowserSound = processArgs[0] || false;
+const perfomanceStage = processArgs[1] || 0;
 
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }))
 puppeteer.use(StealthPlugin())
@@ -26,6 +28,7 @@ const sounds = {
   click: 'click.mp3',
   wait: 'wait.mp3',
 };
+
 
 const sites = fs.readFileSync('sites.txt').toString().split("\n");
 
@@ -136,15 +139,30 @@ async function visitUrl({ url, timeout, numberOfActions }) {
   });
 }
 
-const actionNumbers = [3, 10, 20, 25, 8, 25, 13, 25, 2, 9, 40];
-const timeoutNumbers = [500, 700, 600, 550, 1000, 1500, 300, 590];
+console.log('\x1b[33m%s\x1b[0m', `Launhed with useBrowserSound=${useBrowserSound} perfomanceStage=${perfomanceStage}`);
+
+const stageTimeoutNumbers = [
+  [3000, 4000, 5000, 5500],
+  [2000, 3000, 3200, 1800],
+  [1000, 2100, 2500, 1700],
+  [500, 700, 600, 550, 1000, 1500, 300, 590],
+];
+
+const actionNumbers = [3, 10, 20, 25, 8, 25, 13, 25, 2, 9, 40, 22, 4];
+const timeoutNumbers = stageTimeoutNumbers[perfomanceStage];
 
 function run() {
   const url = sitePool[Math.floor(Math.random() * sitePool.length)];
-  console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-  console.log('%        contact with a struggling device      %')
-  console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-  console.log('% url selected', url);
+  console.log('\x1b[36m%s\x1b[0m', '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  console.log('\x1b[36m%s\x1b[0m', '%        contact with a struggling device      %')
+  console.log('\x1b[36m%s\x1b[0m', '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  console.log('% selected URL', url);
+
+  if (!url) {
+    console.log('Something weird happened skipping');
+    run();
+  }
+
   const numberOfActions = actionNumbers[Math.floor(Math.random() * actionNumbers.length)];
   const timeout = timeoutNumbers[Math.floor(Math.random() * timeoutNumbers.length)];
   visitUrl({ url, timeout, numberOfActions }).then(() => { run() });
